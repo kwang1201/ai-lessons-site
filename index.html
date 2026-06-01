@@ -724,11 +724,49 @@ function renderBoard() {
     return;
   }
   list.innerHTML = notes.slice().reverse().map(n => `
-    <div style="background:#fff;border:0.5px solid #DDE2ED;border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;">
-      ${adminUnlocked ? `<button onclick="deleteNote('${n.id}')" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#ccc;font-size:14px;cursor:pointer;" onmouseover="this.style.color='#C0392B'" onmouseout="this.style.color='#ccc'">✕</button>` : ''}
-      <p style="font-size:14px;color:#1a1a2e;line-height:1.7;margin:0;padding-right:${adminUnlocked?'24px':'0'};white-space:pre-wrap;">${esc(n.text)}</p>
+    <div id="note-${n.id}" style="background:#fff;border:0.5px solid #DDE2ED;border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;">
+      ${adminUnlocked ? `<div style="position:absolute;top:8px;right:10px;display:flex;gap:4px;">
+        <button onclick="toggleNoteEdit('${n.id}')" style="background:rgba(253,184,19,0.15);border:1px solid rgba(253,184,19,0.4);border-radius:9999px;padding:3px 10px;color:#13294B;font-size:11px;font-weight:700;cursor:pointer;font-family:Roboto,Arial,sans-serif;">Edit</button>
+        <button onclick="deleteNote('${n.id}')" style="background:none;border:1px solid rgba(192,57,43,0.3);border-radius:9999px;padding:3px 9px;color:rgba(192,57,43,0.7);font-size:11px;font-weight:700;cursor:pointer;font-family:Roboto,Arial,sans-serif;" onmouseover="this.style.background='#C0392B';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='rgba(192,57,43,0.7)'">✕</button>
+      </div>` : ''}
+      <p id="note-text-${n.id}" style="font-size:14px;color:#1a1a2e;line-height:1.7;margin:0;padding-right:${adminUnlocked?'80px':'0'};white-space:pre-wrap;">${esc(n.text)}</p>
+      <div id="note-edit-${n.id}" style="display:none;margin-top:10px;">
+        <textarea id="note-edit-input-${n.id}" maxlength="500" style="width:100%;min-height:80px;font-family:Roboto,Arial,sans-serif;font-size:14px;color:#1a1a2e;background:#fafbfc;border:1.5px solid #DDE2ED;border-radius:8px;outline:none;resize:vertical;line-height:1.65;padding:10px 12px;">${esc(n.text)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+          <button onclick="saveNoteEdit('${n.id}')" id="note-save-btn-${n.id}" style="padding:7px 18px;background:#13294B;color:#fff;border:none;border-radius:9999px;font-family:Roboto,Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Save</button>
+          <button onclick="toggleNoteEdit('${n.id}')" style="padding:7px 16px;background:#fff;color:#6b7280;border:1.5px solid #DDE2ED;border-radius:9999px;font-family:Roboto,Arial,sans-serif;font-size:12px;cursor:pointer;">Cancel</button>
+        </div>
+      </div>
     </div>
   `).join('');
+}
+function toggleNoteEdit(id) {
+  const textEl = document.getElementById('note-text-'+id);
+  const editEl = document.getElementById('note-edit-'+id);
+  if (!textEl || !editEl) return;
+  const opening = editEl.style.display === 'none';
+  textEl.style.display = opening ? 'none'  : 'block';
+  editEl.style.display = opening ? 'block' : 'none';
+  if (opening) document.getElementById('note-edit-input-'+id)?.focus();
+}
+async function saveNoteEdit(id) {
+  const input = document.getElementById('note-edit-input-'+id);
+  if (!input) return;
+  const newText = input.value.trim();
+  if (!newText) { alert('Post cannot be empty.'); return; }
+  const btn = document.getElementById('note-save-btn-'+id);
+  const origLabel = btn.textContent;
+  btn.disabled = true;
+  if (HAS_HANGUL.test(newText)) btn.textContent = 'Translating…';
+  const textEn = await translateIfKorean(newText);
+  btn.textContent = 'Saving…';
+  const { error } = await sb.from('ai_lessons_notes').update({ text: textEn }).eq('id', id);
+  btn.disabled = false;
+  btn.textContent = origLabel;
+  if (error) { console.error('saveNoteEdit failed:', error); alert('Save failed.'); return; }
+  const i = notes.findIndex(n => n.id === id);
+  if (i >= 0) notes[i].text = textEn;
+  renderBoard();
 }
 async function deleteNote(id) {
   if (!confirm('Delete this post?')) return;
