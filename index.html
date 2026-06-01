@@ -24,15 +24,6 @@
   }
   body { font-family: 'Roboto', Arial, sans-serif; background: var(--off); color: var(--text); min-height: 100vh; }
 
-  /* ── LANG TOGGLE ── */
-  .ko { display: none; }
-  body.lang-ko .en { display: none; }
-  body.lang-ko .ko { display: block; }
-  body.lang-ko span.ko, body.lang-ko strong.ko, body.lang-ko a.ko { display: inline; }
-  .ko-inline { display: none; }
-  body.lang-ko .ko-inline { display: inline !important; }
-  body.lang-ko .en-inline { display: none !important; }
-
   /* ── TOP BAR ── */
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
@@ -53,17 +44,6 @@
   }
   .bar-btn:hover { border-color: var(--sol); color: var(--sol); }
   .bar-btn.admin-active { border-color: var(--sol); color: var(--sol); background: rgba(253,184,19,0.1); }
-  .ltog { display: flex; background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 3px; gap: 2px; }
-  .lbtn {
-    padding: 4px 12px; border-radius: 9999px; border: none;
-    background: transparent; color: rgba(255,255,255,0.5);
-    font-size: 10px; font-weight: 700; cursor: pointer;
-    transition: all .2s; letter-spacing: .5px;
-    font-family: 'Roboto', Arial, sans-serif;
-  }
-  .lbtn.active { background: var(--sol); color: #000; }
-  .lbtn:hover:not(.active) { color: #fff; }
-
   /* ── VIEWS ── */
   #view-submit  { display: block; padding-top: 72px; }
   #view-cards   { display: none; padding-top: 72px; }
@@ -169,8 +149,8 @@
   /* ── PRESENT VIEW ── */
   #view-present { position: fixed; inset: 0; background: var(--galaxy); flex-direction: column; align-items: center; justify-content: center; }
   #view-present.on { display: flex; }
-  .exit-btn { position: fixed; top: 14px; right: 20px; z-index: 200; padding: 6px 16px; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.5); font-family: 'Roboto', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
-  .exit-btn:hover { background: rgba(255,255,255,0.16); color: var(--white); }
+  .exit-btn { position: fixed; top: 18px; right: 24px; z-index: 1000; padding: 10px 22px; border-radius: 9999px; background: var(--sol); border: none; color: var(--galaxy); font-family: 'Roboto', Arial, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.35); transition: all 0.2s; }
+  .exit-btn:hover { background: #e5a610; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.45); }
   .p-inner { width: 100%; max-width: 920px; padding: 20px 24px; display: flex; flex-direction: column; align-items: center; }
   .dots { display: flex; gap: 7px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
   .dot-pip { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: background 0.25s; }
@@ -211,14 +191,11 @@
 <!-- PASSWORD MODAL -->
 <div id="pw-modal">
   <div class="pw-box">
-    <h3 class="en">Admin Access</h3>
-    <h3 class="ko">관리자 접근</h3>
-    <p class="en">Enter the password to manage submissions.</p>
-    <p class="ko">비밀번호를 입력하세요.</p>
+    <h3>Admin Access</h3>
+    <p>Enter the password to manage submissions.</p>
     <input type="password" class="pw-input" id="pw-input" placeholder="&#9679;&#9679;&#9679;&#9679;" maxlength="20" onkeydown="if(event.key==='Enter') checkPw()" />
     <button class="pw-enter" onclick="checkPw()">Enter</button><br>
-    <button class="pw-cancel" onclick="closePwModal()" class="en">Cancel</button>
-    <button class="pw-cancel" onclick="closePwModal()" class="ko">취소</button>
+    <button class="pw-cancel" onclick="closePwModal()">Cancel</button>
   </div>
 </div>
 
@@ -229,14 +206,10 @@
     <span class="bar-title">AI Lessons &amp; Learns</span>
   </div>
   <div class="bar-right">
-    <button class="bar-btn" onclick="showCards()"><span class="en-inline">&#9776; View All</span><span class="ko-inline">&#9776; 전체 보기</span></button>
-    <button class="bar-btn" onclick="showBoard()"><span class="en-inline">&#128172; Board</span><span class="ko-inline">&#128172; 게시판</span></button>
+    <button class="bar-btn" onclick="showCards()">&#9776; View All</button>
+    <button class="bar-btn" onclick="showBoard()">&#128172; Board</button>
     <button class="bar-btn" id="admin-btn" onclick="openPwModal()">&#9881; Admin</button>
-    <button class="bar-btn" onclick="enterPresent()"><span class="en-inline">&#9654; Present</span><span class="ko-inline">&#9654; 발표</span></button>
-    <div class="ltog">
-      <button class="lbtn active" id="lbtn-en" onclick="setLang('en')">EN</button>
-      <button class="lbtn" id="lbtn-ko" onclick="setLang('ko')">KR</button>
-    </div>
+    <button class="bar-btn" onclick="enterPresent()">&#9654; Present</button>
   </div>
 </div>
 
@@ -245,34 +218,31 @@
   <div class="submit-wrap">
     <div class="s-header">
       <div class="eyebrow">Promega Korea / Promega BioSystems Korea</div>
-      <h1 class="en">Share your <span>AI experience</span><br>in three questions</h1>
-      <h1 class="ko">세 가지 질문으로<br><span>AI 경험</span>을 나눠주세요</h1>
-      <div class="lang-notice en">&#x270F;&nbsp; Please write your responses in English</div>
-      <div class="lang-notice ko">&#x270F;&nbsp; 한국어로 작성하셔도 됩니다</div>
+      <h1>Share your <span>AI experience</span><br>in three questions</h1>
+      <div class="lang-notice">&#x270F;&nbsp; Write in English or Korean — Korean will be auto-translated</div>
     </div>
     <div class="name-row">
       <div>
-        <div class="field-label"><strong class="en">Team</strong><strong class="ko">팀</strong></div>
+        <div class="field-label"><strong>Team</strong></div>
         <input type="text" id="inp-team" placeholder="e.g. Sales" maxlength="30" />
       </div>
       <div>
-        <div class="field-label"><strong class="en">Title</strong><strong class="ko">직책</strong></div>
+        <div class="field-label"><strong>Title</strong></div>
         <input type="text" id="inp-title" placeholder="e.g. Specialist" maxlength="40" />
       </div>
       <div>
-        <div class="field-label"><strong class="en">Name</strong><strong class="ko">이름</strong></div>
+        <div class="field-label"><strong>Name</strong></div>
         <input type="text" id="inp-name" placeholder="e.g. Gildong Hong" maxlength="30" />
       </div>
     </div>
     <div class="field-group">
       <div class="field-label">
         <div class="field-num">1</div>
-        <strong class="en">What I tried</strong>
-        <strong class="ko">시도한 것</strong>
+        <strong>What I tried</strong>
       </div>
       <div class="guide-box">
         <div class="guide-label">Guide</div>
-        <div class="guide-text">어떤 상황에서, 어떤 문제를 해결하려고 AI를 써봤나요? 업무 맥락과 함께 써주세요.</div>
+        <div class="guide-text">What situation did you use AI in, and what problem were you trying to solve? Include your work context.</div>
       </div>
       <textarea id="inp-tried" maxlength="1000"
         placeholder="Describe the situation and what you tried with AI..."></textarea>
@@ -280,12 +250,11 @@
     <div class="field-group">
       <div class="field-label">
         <div class="field-num">2</div>
-        <strong class="en">What surprised me</strong>
-        <strong class="ko">놀라웠던 것</strong>
+        <strong>What surprised me</strong>
       </div>
       <div class="guide-box">
         <div class="guide-label">Guide</div>
-        <div class="guide-text">기대와 달랐던 것, 잘 됐든 안 됐든 솔직하게. 막혔던 것, 실패도 괜찮아요.</div>
+        <div class="guide-text">What was different from your expectations — honest, whether good or bad. Roadblocks and failures are fine too.</div>
       </div>
       <textarea id="inp-diff" maxlength="1000"
         placeholder="What was different from what you expected — good or bad?"></textarea>
@@ -293,24 +262,17 @@
     <div class="field-group">
       <div class="field-label">
         <div class="field-num">3</div>
-        <strong class="en">What changed for me</strong>
-        <strong class="ko">달라진 것</strong>
+        <strong>What changed for me</strong>
       </div>
       <div class="guide-box">
         <div class="guide-label">Guide</div>
-        <div class="guide-text">일하는 방식, 생각의 변화. 아주 작은 습관도 OK. 아직 진행 중이어도 괜찮아요.</div>
+        <div class="guide-text">A shift in how you work or think. Even a tiny habit counts. Still in progress is fine too.</div>
       </div>
       <textarea id="inp-change" maxlength="1000"
         placeholder="What shifted for you — even something small?"></textarea>
     </div>
-    <button class="submit-btn" id="submit-btn" onclick="submitEntry()">
-      <span class="en-inline">Submit</span>
-      <span class="ko-inline">제출하기</span>
-    </button>
-    <div class="success" id="success">
-      <span class="en-inline">&#x2713;&nbsp; Submitted! See what others shared below.</span>
-      <span class="ko-inline">&#x2713;&nbsp; 제출되었습니다! 아래에서 다른 분들의 이야기를 확인해보세요.</span>
-    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitEntry()">Submit</button>
+    <div class="success" id="success">&#x2713;&nbsp; Submitted! See what others shared below.</div>
   </div>
 </div>
 
@@ -320,29 +282,23 @@
     <div class="cards-header">
       <div>
         <h2>
-          <span class="en-inline">Submitted Cards</span>
-          <span class="ko-inline">제출된 카드</span>
+          Submitted Cards
           <span class="count-badge" id="count-badge">0</span>
         </h2>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="refresh-btn" onclick="loadAndRender()">
-          &#8635; <span class="en-inline">Refresh</span><span class="ko-inline">새로고침</span>
-        </button>
-        <button class="back-btn" onclick="showSubmit()">
-          &#x2190; <span class="en-inline">Submit yours</span><span class="ko-inline">내 카드 제출</span>
-        </button>
+        <button class="refresh-btn" onclick="loadAndRender()">&#8635; Refresh</button>
+        <button class="back-btn" onclick="showSubmit()">&#x2190; Submit yours</button>
       </div>
     </div>
     <div class="edit-notice">
       <div class="edit-notice-icon">✏️</div>
       <div class="edit-notice-text">
-        내 카드를 수정하거나 삭제하려면 아래에 이름을 입력하세요
-        <span>To edit or delete your card — type your name exactly as submitted</span>
+        To edit or delete your card — type your name exactly as submitted
       </div>
     </div>
     <div class="my-name-bar">
-      <span class="my-name-label">내 이름 / My name:</span>
+      <span class="my-name-label">My name:</span>
       <input type="text" id="my-name-input" placeholder="e.g. Youla Lee" maxlength="30" oninput="renderCards()" />
     </div>
     <div class="card-grid" id="card-grid"></div>
@@ -354,23 +310,14 @@
   <div class="board-wrap">
     <div style="margin-bottom:24px;">
       <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#455DA0;margin-bottom:8px;">Promega Korea / Promega BioSystems Korea</p>
-      <h2 style="font-size:22px;font-weight:700;color:#13294B;margin-bottom:6px;">
-        <span class="en-inline">Questions &amp; Thoughts</span>
-        <span class="ko-inline">질문 &amp; 소감</span>
-      </h2>
-      <p style="font-size:13px;color:#6b7280;line-height:1.65;">
-        <span class="en-inline">Questions from today's session, things you want to ask someone, or a short reflection — post anonymously.</span>
-        <span class="ko-inline">오늘 세션에서 생긴 질문, 누군가에게 묻고 싶은 것, 혹은 짧은 소감 — 익명으로 남겨주세요.</span>
-      </p>
+      <h2 style="font-size:22px;font-weight:700;color:#13294B;margin-bottom:6px;">Questions &amp; Thoughts</h2>
+      <p style="font-size:13px;color:#6b7280;line-height:1.65;">Questions from today's session, things you want to ask someone, or a short reflection — post anonymously. (Korean is auto-translated.)</p>
     </div>
     <div style="background:#fff;border:1.5px solid #DDE2ED;border-radius:12px;padding:20px;margin-bottom:20px;">
       <textarea id="board-input" maxlength="500" style="width:100%;min-height:100px;font-family:Roboto,Arial,sans-serif;font-size:14px;color:#1a1a2e;background:transparent;border:none;outline:none;resize:none;line-height:1.65;"
-        placeholder="질문이나 소감을 자유롭게 써주세요..."></textarea>
+        placeholder="Write your question or reflection freely..."></textarea>
       <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-        <button onclick="submitNote()" id="board-btn" style="padding:9px 24px;background:#13294B;color:#fff;border:none;border-radius:9999px;font-family:Roboto,Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
-          <span class="en-inline">Post anonymously</span>
-          <span class="ko-inline">익명으로 남기기</span>
-        </button>
+        <button onclick="submitNote()" id="board-btn" style="padding:9px 24px;background:#13294B;color:#fff;border:none;border-radius:9999px;font-family:Roboto,Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Post anonymously</button>
       </div>
     </div>
     <div id="board-success" style="display:none;background:#EDF7F1;border:1.5px solid #BDE5CC;border-radius:8px;padding:12px 18px;font-size:14px;color:#1A5C32;text-align:center;margin-bottom:16px;">✓ Posted!</div>
@@ -431,16 +378,28 @@ function esc(s) {
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── LANG TOGGLE ──
-function setLang(l) {
-  document.body.className = l === 'ko' ? 'lang-ko' : '';
-  document.getElementById('lbtn-en').classList.toggle('active', l === 'en');
-  document.getElementById('lbtn-ko').classList.toggle('active', l === 'ko');
-  document.querySelectorAll('.ko-inline').forEach(el => el.style.display = l === 'ko' ? 'inline' : 'none');
-  document.querySelectorAll('.en-inline').forEach(el => el.style.display = l === 'en' ? 'inline' : 'none');
-  currentLang = l;
+// Detect hangul anywhere in the string — used to decide whether to translate.
+const HAS_HANGUL = /[ㄱ-ㆎ가-힣]/;
+
+// Call /api/translate (Vercel function). Returns English text. Soft-fails to
+// the original on any error — better to save in Korean than block submission.
+async function translateIfKorean(text) {
+  if (!text || !HAS_HANGUL.test(text)) return text;
+  try {
+    const r = await fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!r.ok) return text;
+    const data = await r.json();
+    return (data.en && data.en.trim()) || text;
+  } catch (e) {
+    console.error('translate fetch failed:', e);
+    return text;
+  }
 }
-let currentLang = 'en';
+
 
 // ── SUBMIT ──
 async function submitEntry() {
@@ -450,11 +409,22 @@ async function submitEntry() {
   const tried = document.getElementById('inp-tried').value.trim();
   const diff  = document.getElementById('inp-diff').value.trim();
   const change= document.getElementById('inp-change').value.trim();
-  const msg = currentLang === 'ko' ? '모든 항목을 입력해주세요.' : 'Please fill in all fields.';
-  if (!team||!title||!name||!tried||!diff||!change) { alert(msg); return; }
+  if (!team||!title||!name||!tried||!diff||!change) { alert('Please fill in all fields.'); return; }
 
   const btn = document.getElementById('submit-btn');
+  const origLabel = btn.textContent;
   btn.disabled = true;
+  const needsTranslate = HAS_HANGUL.test(tried) || HAS_HANGUL.test(diff) || HAS_HANGUL.test(change);
+  if (needsTranslate) btn.textContent = 'Translating to English…';
+
+  // Translate Korean body fields to English in parallel before saving.
+  const [triedEn, diffEn, changeEn] = await Promise.all([
+    translateIfKorean(tried),
+    translateIfKorean(diff),
+    translateIfKorean(change)
+  ]);
+
+  btn.textContent = 'Saving…';
 
   // Append to the end: query the actual max position in DB (handles the
   // case where the user submits before the initial load() resolves)
@@ -467,13 +437,14 @@ async function submitEntry() {
   const nextPos = (maxRes.data?.position || 0) + 1;
   const { data, error } = await sb
     .from('ai_lessons_entries')
-    .insert({ position: nextPos, team, title, name, tried, diff, change })
+    .insert({ position: nextPos, team, title, name, tried: triedEn, diff: diffEn, change: changeEn })
     .select()
     .single();
   btn.disabled = false;
+  btn.textContent = origLabel;
   if (error) {
     console.error('submitEntry failed:', error);
-    alert(currentLang === 'ko' ? '제출에 실패했습니다. 잠시 후 다시 시도해주세요.' : 'Submission failed. Please try again.');
+    alert('Submission failed. Please try again.');
     return;
   }
   entries.push({
@@ -521,9 +492,9 @@ function isMyCard(e) {
 }
 
 const LABEL = {
-  tried:  { en: 'What I tried',      ko: '시도한 것' },
-  diff:   { en: 'What surprised me', ko: '놀라웠던 것' },
-  change: { en: 'What changed for me', ko: '달라진 것' }
+  tried:  'What I tried',
+  diff:   'What surprised me',
+  change: 'What changed for me'
 };
 
 function renderCards() {
@@ -532,11 +503,7 @@ function renderCards() {
   badge.textContent = entries.length;
 
   if (entries.length === 0) {
-    grid.innerHTML = `<div class="empty-cards">
-      <span class="en-inline">No submissions yet — be the first!</span>
-      <span class="ko-inline">아직 제출된 내용이 없어요. 첫 번째로 남겨보세요!</span>
-    </div>`;
-    setLang(currentLang);
+    grid.innerHTML = `<div class="empty-cards">No submissions yet — be the first!</div>`;
     return;
   }
 
@@ -560,27 +527,27 @@ function renderCards() {
       </div>
       <div class="sub-card-body">
         <div class="sub-sec s1">
-          <div class="sub-sec-label"><span class="en-inline">${LABEL.tried.en}</span><span class="ko-inline">${LABEL.tried.ko}</span></div>
+          <div class="sub-sec-label">${LABEL.tried}</div>
           <div class="sub-sec-text">${esc(e.tried)}</div>
         </div>
         <div class="sub-sec s2">
-          <div class="sub-sec-label"><span class="en-inline">${LABEL.diff.en}</span><span class="ko-inline">${LABEL.diff.ko}</span></div>
+          <div class="sub-sec-label">${LABEL.diff}</div>
           <div class="sub-sec-text">${esc(e.diff)}</div>
         </div>
         <div class="sub-sec s3">
-          <div class="sub-sec-label"><span class="en-inline">${LABEL.change.en}</span><span class="ko-inline">${LABEL.change.ko}</span></div>
+          <div class="sub-sec-label">${LABEL.change}</div>
           <div class="sub-sec-text">${esc(e.change)}</div>
         </div>
       </div>
       <div class="edit-form" id="ef-${e.id}">
         <div class="ef-row3">
-          <div><label>Team / 팀</label><input type="text" id="ef-team-${e.id}" value="${esc(e.team)}" maxlength="30"/></div>
-          <div><label>Title / 직책</label><input type="text" id="ef-title-${e.id}" value="${esc(e.title)}" maxlength="40"/></div>
-          <div><label>Name / 이름</label><input type="text" id="ef-name-${e.id}" value="${esc(e.name)}" maxlength="30"/></div>
+          <div><label>Team</label><input type="text" id="ef-team-${e.id}" value="${esc(e.team)}" maxlength="30"/></div>
+          <div><label>Title</label><input type="text" id="ef-title-${e.id}" value="${esc(e.title)}" maxlength="40"/></div>
+          <div><label>Name</label><input type="text" id="ef-name-${e.id}" value="${esc(e.name)}" maxlength="30"/></div>
         </div>
-        <div><label>What I tried / 시도한 것</label><textarea id="ef-tried-${e.id}" maxlength="1000">${esc(e.tried)}</textarea></div>
-        <div><label>What surprised me / 놀라웠던 것</label><textarea id="ef-diff-${e.id}" maxlength="1000">${esc(e.diff)}</textarea></div>
-        <div><label>What changed for me / 달라진 것</label><textarea id="ef-change-${e.id}" maxlength="1000">${esc(e.change)}</textarea></div>
+        <div><label>What I tried</label><textarea id="ef-tried-${e.id}" maxlength="1000">${esc(e.tried)}</textarea></div>
+        <div><label>What surprised me</label><textarea id="ef-diff-${e.id}" maxlength="1000">${esc(e.diff)}</textarea></div>
+        <div><label>What changed for me</label><textarea id="ef-change-${e.id}" maxlength="1000">${esc(e.change)}</textarea></div>
         <div class="ef-actions">
           <button class="ef-save" onclick="saveEdit('${e.id}')">Save changes</button>
           <button class="ef-cancel" onclick="toggleEdit('${e.id}')">Cancel</button>
@@ -588,7 +555,6 @@ function renderCards() {
       </div>
     </div>
   `).join('');
-  setLang(currentLang);
 }
 
 function toggleEdit(id) {
@@ -607,6 +573,11 @@ async function saveEdit(id) {
     diff:   document.getElementById('ef-diff-'+id).value.trim(),
     change: document.getElementById('ef-change-'+id).value.trim()
   };
+  [patch.tried, patch.diff, patch.change] = await Promise.all([
+    translateIfKorean(patch.tried),
+    translateIfKorean(patch.diff),
+    translateIfKorean(patch.change)
+  ]);
   const { error } = await sb.from('ai_lessons_entries').update(patch).eq('id', id);
   if (error) { console.error('saveEdit failed:', error); alert('Save failed.'); return; }
   Object.assign(entries[i], patch);
@@ -629,7 +600,7 @@ async function moveEntry(id, dir) {
 }
 
 async function deleteEntry(id) {
-  if (!confirm(currentLang === 'ko' ? '이 카드를 삭제할까요?' : 'Delete this card?')) return;
+  if (!confirm('Delete this card?')) return;
   const { error } = await sb.from('ai_lessons_entries').delete().eq('id', id);
   if (error) { console.error('deleteEntry failed:', error); alert('Delete failed.'); return; }
   entries = entries.filter(e=>e.id!==id);
@@ -685,7 +656,6 @@ function renderPresentCard() {
   if (pidx>=entries.length) pidx=0;
   const e = entries[pidx];
   const dots = entries.map((_,i)=>`<div class="dot-pip ${i<pidx?'done':i===pidx?'active':''}"></div>`).join('');
-  const lbl = (k) => currentLang === 'ko' ? LABEL[k].ko : LABEL[k].en;
   inner.innerHTML = `
     <div class="dots">${dots}</div>
     <div class="p-card">
@@ -698,9 +668,9 @@ function renderPresentCard() {
         <div class="p-counter">${pidx+1} / ${entries.length}</div>
       </div>
       <div class="p-body">
-        <div class="p-sec s1"><div class="p-sec-num">1</div><div class="p-sec-label">${lbl('tried')}</div><div class="p-sec-text">${esc(e.tried)}</div></div>
-        <div class="p-sec s2"><div class="p-sec-num">2</div><div class="p-sec-label">${lbl('diff')}</div><div class="p-sec-text">${esc(e.diff)}</div></div>
-        <div class="p-sec s3"><div class="p-sec-num">3</div><div class="p-sec-label">${lbl('change')}</div><div class="p-sec-text">${esc(e.change)}</div></div>
+        <div class="p-sec s1"><div class="p-sec-num">1</div><div class="p-sec-label">${LABEL.tried}</div><div class="p-sec-text">${esc(e.tried)}</div></div>
+        <div class="p-sec s2"><div class="p-sec-num">2</div><div class="p-sec-label">${LABEL.diff}</div><div class="p-sec-text">${esc(e.diff)}</div></div>
+        <div class="p-sec s3"><div class="p-sec-num">3</div><div class="p-sec-label">${LABEL.change}</div><div class="p-sec-text">${esc(e.change)}</div></div>
       </div>
       <div class="p-card-foot"></div>
     </div>
@@ -709,7 +679,7 @@ function renderPresentCard() {
       <div class="nav-count"><strong>${pidx+1}</strong> / ${entries.length}</div>
       <button class="nav-btn" onclick="nav(1)" ${pidx===entries.length-1?'disabled':''}>&#8594;</button>
     </div>
-    <div class="key-hint">${currentLang==='ko'?'← → 방향키로 넘기세요':'Use ← → arrow keys to navigate'}</div>
+    <div class="key-hint">Use ← → arrow keys to navigate · Press Esc to exit</div>
   `;
 }
 function nav(dir) { pidx=Math.max(0,Math.min(entries.length-1,pidx+dir)); renderPresentCard(); }
@@ -729,11 +699,16 @@ async function loadAndRenderBoard() {
 }
 async function submitNote() {
   const text = document.getElementById('board-input').value.trim();
-  if (!text) { alert(currentLang==='ko'?'내용을 입력해주세요.':'Please write something first.'); return; }
+  if (!text) { alert('Please write something first.'); return; }
   const btn = document.getElementById('board-btn');
+  const origLabel = btn.textContent;
   btn.disabled = true;
-  const { data, error } = await sb.from('ai_lessons_notes').insert({ text }).select().single();
+  if (HAS_HANGUL.test(text)) btn.textContent = 'Translating…';
+  const textEn = await translateIfKorean(text);
+  btn.textContent = 'Saving…';
+  const { data, error } = await sb.from('ai_lessons_notes').insert({ text: textEn }).select().single();
   btn.disabled = false;
+  btn.textContent = origLabel;
   if (error) { console.error('submitNote failed:', error); alert('Post failed.'); return; }
   notes.push({ id: data.id, text: data.text });
   document.getElementById('board-input').value = '';
@@ -745,11 +720,7 @@ async function submitNote() {
 function renderBoard() {
   const list = document.getElementById('board-list');
   if (notes.length === 0) {
-    list.innerHTML = `<p style="text-align:center;color:#6b7280;font-size:13px;padding:32px 0;">
-      <span class="en-inline">No posts yet — be the first!</span>
-      <span class="ko-inline">아직 작성된 내용이 없어요. 첫 번째로 남겨보세요!</span>
-    </p>`;
-    setLang(currentLang);
+    list.innerHTML = `<p style="text-align:center;color:#6b7280;font-size:13px;padding:32px 0;">No posts yet — be the first!</p>`;
     return;
   }
   list.innerHTML = notes.slice().reverse().map(n => `
@@ -760,7 +731,7 @@ function renderBoard() {
   `).join('');
 }
 async function deleteNote(id) {
-  if (!confirm(currentLang === 'ko' ? '이 글을 삭제할까요?' : 'Delete this post?')) return;
+  if (!confirm('Delete this post?')) return;
   const { error } = await sb.from('ai_lessons_notes').delete().eq('id', id);
   if (error) { console.error('deleteNote failed:', error); alert('Delete failed.'); return; }
   notes = notes.filter(n => n.id !== id);
@@ -768,7 +739,6 @@ async function deleteNote(id) {
 }
 
 // ── INIT ──
-setLang('en');
 (async () => {
   [entries, notes] = await Promise.all([load(), loadNotes()]);
 })();
