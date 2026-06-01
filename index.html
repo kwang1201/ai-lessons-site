@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Lessons &amp; Learns — Promega Korea</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sol:        #FDB813;
+    --galaxy:     #13294B;
+    --still:      #455DA0;
+    --clear:      #199ac2;
+    --white:      #FFFFFF;
+    --off:        #F5F6F8;
+    --border:     #DDE2ED;
+    --text:       #1a1a2e;
+    --muted:      #6b7280;
+    --c1:         #EBF0F8;
+    --c2:         #FFF8E5;
+    --c3:         #EDF7F1;
+  }
+  body { font-family: 'Roboto', Arial, sans-serif; background: var(--off); color: var(--text); min-height: 100vh; }
+
+  /* ── LANG TOGGLE ── */
+  .ko { display: none; }
+  body.lang-ko .en { display: none; }
+  body.lang-ko .ko { display: block; }
+  body.lang-ko span.ko, body.lang-ko strong.ko, body.lang-ko a.ko { display: inline; }
+  .ko-inline { display: none; }
+  body.lang-ko .ko-inline { display: inline !important; }
+  body.lang-ko .en-inline { display: none !important; }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: var(--galaxy); border-bottom: 3px solid var(--sol);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; height: 52px; gap: 10px;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 12px; }
+  .logo-wrap svg { height: 28px; width: auto; }
+  .bar-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.7); letter-spacing: 0.3px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 12px; }
+  .bar-right { display: flex; gap: 8px; align-items: center; }
+  .bar-btn {
+    padding: 6px 14px; border-radius: 9999px;
+    background: transparent; border: 1.5px solid rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.6); font-family: 'Roboto', Arial, sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .bar-btn:hover { border-color: var(--sol); color: var(--sol); }
+  .bar-btn.admin-active { border-color: var(--sol); color: var(--sol); background: rgba(253,184,19,0.1); }
+  .ltog { display: flex; background: rgba(255,255,255,0.1); border-radius: 9999px; padding: 3px; gap: 2px; }
+  .lbtn {
+    padding: 4px 12px; border-radius: 9999px; border: none;
+    background: transparent; color: rgba(255,255,255,0.5);
+    font-size: 10px; font-weight: 700; cursor: pointer;
+    transition: all .2s; letter-spacing: .5px;
+    font-family: 'Roboto', Arial, sans-serif;
+  }
+  .lbtn.active { background: var(--sol); color: #000; }
+  .lbtn:hover:not(.active) { color: #fff; }
+
+  /* ── VIEWS ── */
+  #view-submit  { display: block; padding-top: 72px; }
+  #view-cards   { display: none; padding-top: 72px; }
+  #view-present { display: none; }
+  #view-board   { display: none; padding-top: 72px; }
+
+  /* ── SUBMIT VIEW ── */
+  .submit-wrap { max-width: 580px; margin: 0 auto; padding: 36px 20px 60px; }
+  .s-header { text-align: left; margin-bottom: 28px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--still); margin-bottom: 10px; }
+  .s-header h1 { font-size: 32px; font-weight: 700; color: var(--galaxy); line-height: 1.2; margin-bottom: 14px; }
+  .s-header h1 span { color: var(--still); }
+  .lang-notice { display: inline-flex; align-items: center; gap: 6px; background: var(--c1); border: 1.5px solid #c5d0e8; border-radius: 9999px; padding: 6px 14px; font-size: 12.5px; color: var(--still); font-weight: 600; }
+  .name-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .field-group { margin-bottom: 18px; }
+  .field-label { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .field-num { width: 20px; height: 20px; border-radius: 50%; background: var(--galaxy); color: var(--sol); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .field-label strong { font-size: 13px; font-weight: 700; color: var(--galaxy); }
+  .guide-box { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--sol); border-radius: 0 6px 6px 0; padding: 9px 13px; margin-bottom: 7px; }
+  .guide-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--sol); margin-bottom: 4px; }
+  .guide-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  input[type=text], textarea { width: 100%; font-family: 'Roboto', Arial, sans-serif; font-size: 14px; color: var(--text); background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px 13px; transition: border-color 0.2s; resize: none; outline: none; line-height: 1.6; }
+  input[type=text]:focus, textarea:focus { border-color: var(--still); }
+  textarea { min-height: 84px; }
+  .submit-btn { width: 100%; padding: 14px; background: var(--galaxy); color: var(--white); border: none; border-radius: 9999px; font-family: 'Roboto', Arial, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 4px; letter-spacing: 0.3px; }
+  .submit-btn:hover { background: #1d3d6e; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .success { display: none; margin-top: 12px; background: #EDF7F1; border: 1.5px solid #BDE5CC; border-radius: 8px; padding: 12px 18px; font-size: 14px; color: #1A5C32; text-align: center; font-weight: 500; }
+  .success.show { display: block; }
+
+  /* ── CARDS VIEW ── */
+  .cards-wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px 80px; }
+  .cards-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .cards-header h2 { font-size: 22px; font-weight: 700; color: var(--galaxy); }
+  .cards-header .back-btn { padding: 7px 18px; border-radius: 9999px; border: 1.5px solid var(--border); background: var(--white); font-family: 'Roboto', Arial, sans-serif; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+  .cards-header .back-btn:hover { border-color: var(--galaxy); color: var(--galaxy); }
+  .count-badge { display: inline-block; background: var(--sol); color: var(--galaxy); font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 9999px; margin-left: 10px; vertical-align: middle; }
+  .card-grid { display: flex; flex-direction: column; gap: 12px; }
+  .sub-card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .sub-card-head { background: var(--galaxy); padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .sub-card-name { color: var(--white); font-size: 13.5px; font-weight: 600; }
+  .sub-card-name .dot { color: var(--sol); margin: 0 5px; }
+  .sub-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 9px; }
+  .sub-sec { border-radius: 6px; padding: 10px 12px; }
+  .sub-sec.s1{background:var(--c1)} .sub-sec.s2{background:var(--c2)} .sub-sec.s3{background:var(--c3)}
+  .sub-sec-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .sub-sec-text  { font-size: 13px; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
+  .empty-cards { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+  .admin-actions { display: flex; gap: 5px; align-items: center; }
+  .ac-btn { padding: 4px 10px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); font-family: 'Roboto', Arial, sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .ac-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .ac-btn.ac-del { border-color: rgba(255,100,100,0.4); color: rgba(255,150,150,0.8); }
+  .ac-btn.ac-del:hover { background: #C0392B; border-color: #C0392B; color: #fff; }
+  .my-name-bar { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; }
+  .my-name-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .my-name-bar input { flex: 1; border: none; outline: none; font-size: 13px; font-family: 'Roboto', Arial, sans-serif; color: var(--text); background: transparent; padding: 0; }
+  .my-name-bar input::placeholder { color: #bbb; }
+
+  /* ── EDIT FORM ── */
+  .edit-form { display: none; flex-direction: column; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--border); background: #fafbfc; }
+  .edit-form.open { display: flex; }
+  .edit-form label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 4px; }
+  .edit-form input[type=text] { font-size: 13px; padding: 9px 11px; }
+  .edit-form textarea { font-size: 13px; padding: 9px 11px; min-height: 70px; }
+  .ef-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .ef-actions { display: flex; gap: 8px; }
+  .ef-save { flex: 1; padding: 10px; background: var(--galaxy); color: var(--white); border: none; border-radius: 9999px; font-family: 'Roboto', Arial, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .ef-save:hover { background: #1d3d6e; }
+  .ef-cancel { padding: 10px 18px; background: var(--white); color: var(--muted); border: 1.5px solid var(--border); border-radius: 9999px; font-family: 'Roboto', Arial, sans-serif; font-size: 13px; cursor: pointer; }
+  .ac-btn.ac-edit { background: var(--sol); color: var(--galaxy); border-color: var(--sol); }
+  .ac-btn.ac-edit:hover { background: #e5a610; }
+  .edit-notice {
+    background: var(--sol); color: var(--galaxy);
+    border-radius: 10px; padding: 13px 18px;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .edit-notice-icon { font-size: 20px; flex-shrink: 0; }
+  .edit-notice-text { font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .edit-notice-text span { display: block; font-size: 11px; font-weight: 400; margin-top: 2px; opacity: 0.75; }
+  .loading-bar { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--still); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── REFRESH BTN ── */
+  .refresh-btn { padding: 5px 12px; border-radius: 9999px; border: 1.5px solid var(--border); background: var(--white); font-family: 'Roboto', Arial, sans-serif; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.2s; margin-left: 8px; }
+  .refresh-btn:hover { border-color: var(--still); color: var(--still); }
+
+  /* ── PASSWORD MODAL ── */
+  #pw-modal { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(10,20,40,0.72); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+  #pw-modal.on { display: flex; }
+  .pw-box { background: var(--white); border-radius: 14px; padding: 36px 32px; width: 320px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .pw-box h3 { font-size: 20px; font-weight: 700; color: var(--galaxy); margin-bottom: 6px; }
+  .pw-box p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .pw-input { width: 100%; font-family: 'Roboto', Arial, sans-serif; font-size: 18px; letter-spacing: 4px; text-align: center; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; margin-bottom: 14px; transition: border-color 0.2s; }
+  .pw-input:focus { border-color: var(--still); }
+  .pw-input.wrong { border-color: #C0392B; animation: shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .pw-enter { width: 100%; padding: 12px; background: var(--galaxy); color: var(--white); border: none; border-radius: 9999px; font-family: 'Roboto', Arial, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .pw-enter:hover { background: #1d3d6e; }
+  .pw-cancel { font-size: 13px; color: var(--muted); cursor: pointer; border: none; background: none; }
+
+  /* ── PRESENT VIEW ── */
+  #view-present { position: fixed; inset: 0; background: var(--galaxy); flex-direction: column; align-items: center; justify-content: center; }
+  #view-present.on { display: flex; }
+  .exit-btn { position: fixed; top: 14px; right: 20px; z-index: 200; padding: 6px 16px; border-radius: 9999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.5); font-family: 'Roboto', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .exit-btn:hover { background: rgba(255,255,255,0.16); color: var(--white); }
+  .p-inner { width: 100%; max-width: 920px; padding: 20px 24px; display: flex; flex-direction: column; align-items: center; }
+  .dots { display: flex; gap: 7px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+  .dot-pip { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: background 0.25s; }
+  .dot-pip.active { background: var(--sol); }
+  .dot-pip.done   { background: rgba(255,255,255,0.4); }
+  .p-card { background: var(--white); border-radius: 16px; width: 100%; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.35); animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .p-card-head { background: var(--galaxy); padding: 26px 40px 22px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .p-tag  { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--sol); margin-bottom: 6px; }
+  .p-name { font-size: 36px; font-weight: 700; color: var(--white); line-height: 1.1; }
+  .p-sub  { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 5px; }
+  .p-counter { font-size: 13px; color: rgba(255,255,255,0.3); padding-bottom: 4px; }
+  .p-body { padding: 26px 40px 34px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .p-sec { border-radius: 10px; padding: 18px; }
+  .p-sec.s1{background:var(--c1)} .p-sec.s2{background:var(--c2)} .p-sec.s3{background:var(--c3)}
+  .p-sec-num { width: 20px; height: 20px; border-radius: 50%; background: var(--galaxy); color: var(--sol); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .p-sec-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .p-sec-text  { font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+  .p-card-foot { height: 4px; background: var(--sol); }
+  .p-nav { display: flex; align-items: center; gap: 20px; margin-top: 22px; }
+  .nav-btn { width: 46px; height: 46px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); background: transparent; color: var(--white); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .nav-btn:hover:not(:disabled) { border-color: var(--sol); color: var(--sol); }
+  .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .nav-count { font-size: 13px; color: rgba(255,255,255,0.4); min-width: 70px; text-align: center; }
+  .nav-count strong { color: var(--white); font-size: 17px; }
+  .key-hint { margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.22); letter-spacing: 0.5px; }
+  .p-empty { color: rgba(255,255,255,0.4); text-align: center; font-size: 15px; line-height: 1.8; }
+  .p-empty .icon { font-size: 44px; display: block; margin-bottom: 14px; }
+  .p-logo-foot { position: fixed; bottom: 18px; left: 24px; opacity: 0.25; }
+  .p-logo-foot svg { height: 22px; width: auto; }
+
+  /* ── BOARD VIEW ── */
+  .board-wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px 80px; }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD MODAL -->
+<div id="pw-modal">
+  <div class="pw-box">
+    <h3 class="en">Admin Access</h3>
+    <h3 class="ko">관리자 접근</h3>
+    <p class="en">Enter the password to manage submissions.</p>
+    <p class="ko">비밀번호를 입력하세요.</p>
+    <input type="password" class="pw-input" id="pw-input" placeholder="&#9679;&#9679;&#9679;&#9679;" maxlength="20" onkeydown="if(event.key==='Enter') checkPw()" />
+    <button class="pw-enter" onclick="checkPw()">Enter</button><br>
+    <button class="pw-cancel" onclick="closePwModal()" class="en">Cancel</button>
+    <button class="pw-cancel" onclick="closePwModal()" class="ko">취소</button>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo-wrap">
+    <svg viewBox="0 0 245.5 80.5" xmlns="http://www.w3.org/2000/svg"><g fill="#ffffff"><path d="m93.2 34.7c-.1-2.3-1.9-6.2-8.3-6.2h-11v.4c.3 5.3.3 16.7 0 22.2v.4s6.1 0 6.1 0v-.4c-.1-2.1-.2-4.7-.2-7.5h3.8c3.6 0 6.1-.9 7.6-2.7 1.8-2.1 1.9-4.3 1.8-6.3zm-10.3 4.7c-.5 0-1.6 0-3 0 0-2.7 0-4.1 0-6.8 1.4 0 2.2-.1 3.3 0 2.7.1 4 1.4 4 3.2s-.4 3.6-4.3 3.8z"/><path d="m108.1 33.9h-.3c-.6-.2-.8-.1-1.3-.1-2.7 0-4.9 1.1-6 2.7v-2-.3h-5.5v.4c.4 6.8.3 11.1.2 15.4v1.2s0 .4 0 .4h5.8v-.4s-.1-2.1-.1-2.1c-.2-3.5-.1-5.9 0-7.2.3-1.9 1.5-3.4 4.1-3.4s1.3 0 1.9.1l.5.2.8-4.7z"/><path d="m108 43c0 4 3.1 8.8 10.7 8.8s10.4-5 10.4-9.2-4-8.9-10.8-8.9-10.3 2.4-10.3 9.3zm5.9-.2c0-3.5 2-5.1 4.7-5.1s4.6.6 4.6 4.6-2.4 5.6-4.7 5.6c-3.3 0-4.6-2.5-4.6-5"/><path d="m160.1 38.8c-.1-3-2.4-5.1-6.3-5.1s-4.7.9-5.9 2.7c-1-1.7-2.8-2.7-5.4-2.7s-4.6 1.2-5.6 2.7v-1.9-.4h-5.5v.4c.2 6.3 0 14.7 0 16.5v.4s5.8 0 5.8 0v-.4c-.1-1.9-.3-7.2 0-9.4.2-1.6.8-3.5 3.2-3.5s2.5.8 2.5 2.6c.1 2.5 0 5 0 7.4v2.9.4s5.8 0 5.8 0v-.6c0-1.8-.2-7.4 0-9.3.2-1.2.7-3.3 3.2-3.3s2.5.8 2.6 2.5c0 1.1 0 7.7-.1 10.2v.6s5.8 0 5.8 0v-.8c-.2-4-.1-7.2 0-9.6 0-1.1 0-1.8 0-2.2"/><path d="m172.4 33.7c-4 0-6.1 1-7.8 2.7-2.2 2.4-2.4 5.6-2.3 6.9 0 1.4.4 3.4 1.8 5.1 1.8 2.2 5 3.3 9.1 3.3s3.9-.3 6-.8h.2s.7-4.1.7-4.1l-.5.2c-1.7.5-4 .9-6 .9-3.2 0-5.4-1-5.6-3.7v-.2s13.2 0 13.2 0 0-1.2 0-2.4c0-4.5-2.9-7.9-9.2-7.9m3.9 7.1h-7.8c0-2.1 1.6-3.6 3.9-3.6s3.9 1.1 3.9 3.6"/><path d="m197.2 49.6s.4 2.5-.9 3.9c-1.1 1.1-3.3 1.2-4.6 1.2s-2.4 0-5.2-.7l-.7-.2-.7 4h.2c1.6.4 4.5.8 7.5.8s6.7-1 8.1-2.5 2-4 1.9-6.2c-.2-5.8-.2-9.6 0-15.1v-.3s-.3 0-.3 0c-2.5-.4-5.1-.8-7.8-.8-4.3 0-7.1.8-9.1 2.9-2.4 2.5-2.4 5.4-2.4 6.7 0 4.9 3.1 8.1 8.1 8.1s5-1 5.9-1.8zm-4.3-2.2c-2.6 0-4.1-1.3-4.2-3.9 0-1 0-2.9 1.3-4.3 1-1.1 2.5-1.7 4.7-1.7s1.6 0 2.5.2v1.2c0 1.5 0 3.3-.2 4.7-.3 1.9-1.4 3.8-4.2 3.8"/><path d="m222.9 51c-.1-3 0-5.8 0-8.3 0-1.7 0-2.3 0-3.3 0-3.3-2.2-5.7-8.2-5.7s-4.5.2-7.4.9h-.2s-.5 4-.5 4l.5-.2c2.5-.9 4.8-1.3 6.9-1.3s3.3.6 3.3 1.6c0 1.7-2.4 1.6-5.4 2.3-3.5.7-7.1 1.8-6.9 6 .2 4.5 4.8 4.9 6.8 4.9s4.7-.7 5.7-2.3v1.5.4s.4 0 .4 0h5.1v-.4zm-5.5-5.5c-.2 2.4-3.3 2.7-4.3 2.7s-2.4-.3-2.6-1.7c-.1-1.3.9-2.3 3.4-2.7 1.1-.2 2.9-.6 3.6-1v2.6z"/><path d="m52.2 27c2.9 2.1 4 6.3 2.5 9.7-1.4-2.7-6.8-5-10.4-5.7 2.7-.9 5.9-2.1 8-4z"/><path d="m29.8 52.4c-2.9-2.1-4-6.3-2.5-9.7 1.4 2.7 6.8 5 10.4 5.7-2.7.9-5.9 2.1-8 4z"/><path d="m28.9 54.2c0-.1 0-.1 0-.2s-.1-.1-.2-.1c-2.4-2.2-4-4.9-3.8-8.1.9-15.8 22.4-14.3 27.2-21.1-3.3-1.9-7-3.1-10.5-4.2-2.5 1.4-5.2 2.2-7.8 3.3-15.7 6.6-20.1 20.2-5.1 30.3h.2z"/><path d="m53.3 25.3s-.1 0-.2-.1v.2s.1.1.2.1c2.3 2.1 4 4.9 3.7 8.1-1.1 15.8-22.4 14.3-27.2 21.1 3.3 1.9 7 3.1 10.5 4.2 2.5-1.4 5.2-2.2 7.8-3.3 15.7-6.6 20.1-20.2 5.2-30.3z"/></g></svg>
+    <span class="bar-title">AI Lessons &amp; Learns</span>
+  </div>
+  <div class="bar-right">
+    <button class="bar-btn" onclick="showCards()"><span class="en-inline">&#9776; View All</span><span class="ko-inline">&#9776; 전체 보기</span></button>
+    <button class="bar-btn" onclick="showBoard()"><span class="en-inline">&#128172; Board</span><span class="ko-inline">&#128172; 게시판</span></button>
+    <button class="bar-btn" id="admin-btn" onclick="openPwModal()">&#9881; Admin</button>
+    <button class="bar-btn" onclick="enterPresent()"><span class="en-inline">&#9654; Present</span><span class="ko-inline">&#9654; 발표</span></button>
+    <div class="ltog">
+      <button class="lbtn active" id="lbtn-en" onclick="setLang('en')">EN</button>
+      <button class="lbtn" id="lbtn-ko" onclick="setLang('ko')">KR</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT VIEW -->
+<div id="view-submit">
+  <div class="submit-wrap">
+    <div class="s-header">
+      <div class="eyebrow">Promega Korea / Promega BioSystems Korea</div>
+      <h1 class="en">Share your <span>AI experience</span><br>in three questions</h1>
+      <h1 class="ko">세 가지 질문으로<br><span>AI 경험</span>을 나눠주세요</h1>
+      <div class="lang-notice en">&#x270F;&nbsp; Please write your responses in English</div>
+      <div class="lang-notice ko">&#x270F;&nbsp; 한국어로 작성하셔도 됩니다</div>
+    </div>
+    <div class="name-row">
+      <div>
+        <div class="field-label"><strong class="en">Team</strong><strong class="ko">팀</strong></div>
+        <input type="text" id="inp-team" placeholder="e.g. Sales" maxlength="30" />
+      </div>
+      <div>
+        <div class="field-label"><strong class="en">Title</strong><strong class="ko">직책</strong></div>
+        <input type="text" id="inp-title" placeholder="e.g. Specialist" maxlength="40" />
+      </div>
+      <div>
+        <div class="field-label"><strong class="en">Name</strong><strong class="ko">이름</strong></div>
+        <input type="text" id="inp-name" placeholder="e.g. Gildong Hong" maxlength="30" />
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">
+        <div class="field-num">1</div>
+        <strong class="en">What I tried</strong>
+        <strong class="ko">시도한 것</strong>
+      </div>
+      <div class="guide-box">
+        <div class="guide-label">Guide</div>
+        <div class="guide-text">어떤 상황에서, 어떤 문제를 해결하려고 AI를 써봤나요? 업무 맥락과 함께 써주세요.</div>
+      </div>
+      <textarea id="inp-tried" maxlength="1000"
+        placeholder="Describe the situation and what you tried with AI..."></textarea>
+    </div>
+    <div class="field-group">
+      <div class="field-label">
+        <div class="field-num">2</div>
+        <strong class="en">What surprised me</strong>
+        <strong class="ko">놀라웠던 것</strong>
+      </div>
+      <div class="guide-box">
+        <div class="guide-label">Guide</div>
+        <div class="guide-text">기대와 달랐던 것, 잘 됐든 안 됐든 솔직하게. 막혔던 것, 실패도 괜찮아요.</div>
+      </div>
+      <textarea id="inp-diff" maxlength="1000"
+        placeholder="What was different from what you expected — good or bad?"></textarea>
+    </div>
+    <div class="field-group">
+      <div class="field-label">
+        <div class="field-num">3</div>
+        <strong class="en">What changed for me</strong>
+        <strong class="ko">달라진 것</strong>
+      </div>
+      <div class="guide-box">
+        <div class="guide-label">Guide</div>
+        <div class="guide-text">일하는 방식, 생각의 변화. 아주 작은 습관도 OK. 아직 진행 중이어도 괜찮아요.</div>
+      </div>
+      <textarea id="inp-change" maxlength="1000"
+        placeholder="What shifted for you — even something small?"></textarea>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="submitEntry()">
+      <span class="en-inline">Submit</span>
+      <span class="ko-inline">제출하기</span>
+    </button>
+    <div class="success" id="success">
+      <span class="en-inline">&#x2713;&nbsp; Submitted! See what others shared below.</span>
+      <span class="ko-inline">&#x2713;&nbsp; 제출되었습니다! 아래에서 다른 분들의 이야기를 확인해보세요.</span>
+    </div>
+  </div>
+</div>
+
+<!-- CARDS VIEW -->
+<div id="view-cards">
+  <div class="cards-wrap">
+    <div class="cards-header">
+      <div>
+        <h2>
+          <span class="en-inline">Submitted Cards</span>
+          <span class="ko-inline">제출된 카드</span>
+          <span class="count-badge" id="count-badge">0</span>
+        </h2>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="refresh-btn" onclick="loadAndRender()">
+          &#8635; <span class="en-inline">Refresh</span><span class="ko-inline">새로고침</span>
+        </button>
+        <button class="back-btn" onclick="showSubmit()">
+          &#x2190; <span class="en-inline">Submit yours</span><span class="ko-inline">내 카드 제출</span>
+        </button>
+      </div>
+    </div>
+    <div class="edit-notice">
+      <div class="edit-notice-icon">✏️</div>
+      <div class="edit-notice-text">
+        내 카드를 수정하거나 삭제하려면 아래에 이름을 입력하세요
+        <span>To edit or delete your card — type your name exactly as submitted</span>
+      </div>
+    </div>
+    <div class="my-name-bar">
+      <span class="my-name-label">내 이름 / My name:</span>
+      <input type="text" id="my-name-input" placeholder="e.g. Youla Lee" maxlength="30" oninput="renderCards()" />
+    </div>
+    <div class="card-grid" id="card-grid"></div>
+  </div>
+</div>
+
+<!-- BOARD VIEW -->
+<div id="view-board">
+  <div class="board-wrap">
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#455DA0;margin-bottom:8px;">Promega Korea / Promega BioSystems Korea</p>
+      <h2 style="font-size:22px;font-weight:700;color:#13294B;margin-bottom:6px;">
+        <span class="en-inline">Questions &amp; Thoughts</span>
+        <span class="ko-inline">질문 &amp; 소감</span>
+      </h2>
+      <p style="font-size:13px;color:#6b7280;line-height:1.65;">
+        <span class="en-inline">Questions from today's session, things you want to ask someone, or a short reflection — post anonymously.</span>
+        <span class="ko-inline">오늘 세션에서 생긴 질문, 누군가에게 묻고 싶은 것, 혹은 짧은 소감 — 익명으로 남겨주세요.</span>
+      </p>
+    </div>
+    <div style="background:#fff;border:1.5px solid #DDE2ED;border-radius:12px;padding:20px;margin-bottom:20px;">
+      <textarea id="board-input" maxlength="500" style="width:100%;min-height:100px;font-family:Roboto,Arial,sans-serif;font-size:14px;color:#1a1a2e;background:transparent;border:none;outline:none;resize:none;line-height:1.65;"
+        placeholder="질문이나 소감을 자유롭게 써주세요..."></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+        <button onclick="submitNote()" id="board-btn" style="padding:9px 24px;background:#13294B;color:#fff;border:none;border-radius:9999px;font-family:Roboto,Arial,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+          <span class="en-inline">Post anonymously</span>
+          <span class="ko-inline">익명으로 남기기</span>
+        </button>
+      </div>
+    </div>
+    <div id="board-success" style="display:none;background:#EDF7F1;border:1.5px solid #BDE5CC;border-radius:8px;padding:12px 18px;font-size:14px;color:#1A5C32;text-align:center;margin-bottom:16px;">✓ Posted!</div>
+    <div id="board-list"></div>
+  </div>
+</div>
+
+<!-- PRESENT VIEW -->
+<div id="view-present">
+  <button class="exit-btn" onclick="exitPresent()">&#x2715; Exit</button>
+  <div class="p-inner" id="p-inner"></div>
+  <div class="p-logo-foot">
+    <svg viewBox="0 0 245.5 80.5" xmlns="http://www.w3.org/2000/svg"><g fill="#ffffff"><path d="m93.2 34.7c-.1-2.3-1.9-6.2-8.3-6.2h-11v.4c.3 5.3.3 16.7 0 22.2v.4s6.1 0 6.1 0v-.4c-.1-2.1-.2-4.7-.2-7.5h3.8c3.6 0 6.1-.9 7.6-2.7 1.8-2.1 1.9-4.3 1.8-6.3zm-10.3 4.7c-.5 0-1.6 0-3 0 0-2.7 0-4.1 0-6.8 1.4 0 2.2-.1 3.3 0 2.7.1 4 1.4 4 3.2s-.4 3.6-4.3 3.8z"/><path d="m108.1 33.9h-.3c-.6-.2-.8-.1-1.3-.1-2.7 0-4.9 1.1-6 2.7v-2-.3h-5.5v.4c.4 6.8.3 11.1.2 15.4v1.2s0 .4 0 .4h5.8v-.4s-.1-2.1-.1-2.1c-.2-3.5-.1-5.9 0-7.2.3-1.9 1.5-3.4 4.1-3.4s1.3 0 1.9.1l.5.2.8-4.7z"/><path d="m52.2 27c2.9 2.1 4 6.3 2.5 9.7-1.4-2.7-6.8-5-10.4-5.7 2.7-.9 5.9-2.1 8-4z"/><path d="m29.8 52.4c-2.9-2.1-4-6.3-2.5-9.7 1.4 2.7 6.8 5 10.4 5.7-2.7.9-5.9 2.1-8 4z"/><path d="m28.9 54.2c0-.1 0-.1 0-.2s-.1-.1-.2-.1c-2.4-2.2-4-4.9-3.8-8.1.9-15.8 22.4-14.3 27.2-21.1-3.3-1.9-7-3.1-10.5-4.2-2.5 1.4-5.2 2.2-7.8 3.3-15.7 6.6-20.1 20.2-5.1 30.3h.2z"/><path d="m53.3 25.3s-.1 0-.2-.1v.2s.1.1.2.1c2.3 2.1 4 4.9 3.7 8.1-1.1 15.8-22.4 14.3-27.2 21.1 3.3 1.9 7 3.1 10.5 4.2 2.5-1.4 5.2-2.2 7.8-3.3 15.7-6.6 20.1-20.2 5.2-30.3z"/></g></svg>
+  </div>
+</div>
+
+<script>
+const ADMIN_PW = 'promega2026';
+let entries = [];
+let notes = [];
+let pidx = 0;
+let adminUnlocked = false;
+
+// ── Storage: Supabase ──
+// Project: bcggwrvmbmbfvwhehtfq (events project — shared with PBK20, Tao).
+// Anon key is safe to expose; RLS policies enforce access.
+const SUPABASE_URL = 'https://bcggwrvmbmbfvwhehtfq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjZ2d3cnZtYm1iZnZ3aGVodGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MzQwMTgsImV4cCI6MjA5MjMxMDAxOH0.P99MxJFtkurG49pEYDAcLpR2zTb4jMUIYENtn5ZY-GU';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false }
+});
+
+async function load() {
+  const { data, error } = await sb
+    .from('ai_lessons_entries')
+    .select('*')
+    .order('position', { ascending: true })
+    .order('id', { ascending: true });
+  if (error) { console.error('load entries failed:', error); return []; }
+  // Map DB rows → in-memory shape (same fields as before; id is now a UUID string)
+  return data.map(r => ({
+    id: r.id, position: r.position, team: r.team, title: r.title, name: r.name,
+    tried: r.tried, diff: r.diff, change: r.change
+  }));
+}
+
+async function loadNotes() {
+  const { data, error } = await sb
+    .from('ai_lessons_notes')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('load notes failed:', error); return []; }
+  return data.map(r => ({ id: r.id, text: r.text }));
+}
+
+// ── UTILS ──
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── LANG TOGGLE ──
+function setLang(l) {
+  document.body.className = l === 'ko' ? 'lang-ko' : '';
+  document.getElementById('lbtn-en').classList.toggle('active', l === 'en');
+  document.getElementById('lbtn-ko').classList.toggle('active', l === 'ko');
+  document.querySelectorAll('.ko-inline').forEach(el => el.style.display = l === 'ko' ? 'inline' : 'none');
+  document.querySelectorAll('.en-inline').forEach(el => el.style.display = l === 'en' ? 'inline' : 'none');
+  currentLang = l;
+}
+let currentLang = 'en';
+
+// ── SUBMIT ──
+async function submitEntry() {
+  const team  = document.getElementById('inp-team').value.trim();
+  const title = document.getElementById('inp-title').value.trim();
+  const name  = document.getElementById('inp-name').value.trim();
+  const tried = document.getElementById('inp-tried').value.trim();
+  const diff  = document.getElementById('inp-diff').value.trim();
+  const change= document.getElementById('inp-change').value.trim();
+  const msg = currentLang === 'ko' ? '모든 항목을 입력해주세요.' : 'Please fill in all fields.';
+  if (!team||!title||!name||!tried||!diff||!change) { alert(msg); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+
+  // Append to the end: query the actual max position in DB (handles the
+  // case where the user submits before the initial load() resolves)
+  const maxRes = await sb
+    .from('ai_lessons_entries')
+    .select('position')
+    .order('position', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextPos = (maxRes.data?.position || 0) + 1;
+  const { data, error } = await sb
+    .from('ai_lessons_entries')
+    .insert({ position: nextPos, team, title, name, tried, diff, change })
+    .select()
+    .single();
+  btn.disabled = false;
+  if (error) {
+    console.error('submitEntry failed:', error);
+    alert(currentLang === 'ko' ? '제출에 실패했습니다. 잠시 후 다시 시도해주세요.' : 'Submission failed. Please try again.');
+    return;
+  }
+  entries.push({
+    id: data.id, position: data.position, team: data.team, title: data.title, name: data.name,
+    tried: data.tried, diff: data.diff, change: data.change
+  });
+
+  ['inp-team','inp-title','inp-name','inp-tried','inp-diff','inp-change'].forEach(id => document.getElementById(id).value='');
+
+  const s = document.getElementById('success');
+  s.classList.add('show');
+  setTimeout(()=>s.classList.remove('show'), 3000);
+  setTimeout(()=>showCards(), 1200);
+}
+
+// ── VIEW SWITCHING ──
+function showSubmit() {
+  document.getElementById('view-submit').style.display = 'block';
+  document.getElementById('view-cards').style.display  = 'none';
+  document.getElementById('view-board').style.display  = 'none';
+}
+function showCards() {
+  document.getElementById('view-submit').style.display = 'none';
+  document.getElementById('view-cards').style.display  = 'block';
+  document.getElementById('view-board').style.display  = 'none';
+  loadAndRender();
+}
+function showBoard() {
+  document.getElementById('view-submit').style.display = 'none';
+  document.getElementById('view-cards').style.display  = 'none';
+  document.getElementById('view-board').style.display  = 'block';
+  loadAndRenderBoard();
+}
+async function loadAndRender() {
+  const grid = document.getElementById('card-grid');
+  if (grid) grid.innerHTML = '<div class="loading-bar"><span class="spinner"></span>Loading…</div>';
+  [entries, notes] = await Promise.all([load(), loadNotes()]);
+  renderCards();
+}
+
+// ── CARDS ──
+function isMyCard(e) {
+  const myName = (document.getElementById('my-name-input')||{value:''}).value.trim().toLowerCase();
+  return myName.length > 0 && e.name.toLowerCase() === myName;
+}
+
+const LABEL = {
+  tried:  { en: 'What I tried',      ko: '시도한 것' },
+  diff:   { en: 'What surprised me', ko: '놀라웠던 것' },
+  change: { en: 'What changed for me', ko: '달라진 것' }
+};
+
+function renderCards() {
+  const grid  = document.getElementById('card-grid');
+  const badge = document.getElementById('count-badge');
+  badge.textContent = entries.length;
+
+  if (entries.length === 0) {
+    grid.innerHTML = `<div class="empty-cards">
+      <span class="en-inline">No submissions yet — be the first!</span>
+      <span class="ko-inline">아직 제출된 내용이 없어요. 첫 번째로 남겨보세요!</span>
+    </div>`;
+    setLang(currentLang);
+    return;
+  }
+
+  grid.innerHTML = entries.map((e, i) => `
+    <div class="sub-card" id="sc-${e.id}">
+      <div class="sub-card-head">
+        <span class="sub-card-name">
+          ${esc(e.team)}<span class="dot"> · </span>${esc(e.title)}<span class="dot"> · </span>${esc(e.name)}
+        </span>
+        ${adminUnlocked ? `
+        <div class="admin-actions">
+          <button class="ac-btn" onclick="moveEntry('${e.id}',-1)" ${i===0?'disabled':''}>↑</button>
+          <button class="ac-btn" onclick="moveEntry('${e.id}',1)" ${i===entries.length-1?'disabled':''}>↓</button>
+          <button class="ac-btn ac-edit" onclick="toggleEdit('${e.id}')">Edit</button>
+          <button class="ac-btn ac-del" onclick="deleteEntry('${e.id}')">✕</button>
+        </div>` : isMyCard(e) ? `
+        <div class="admin-actions">
+          <button class="ac-btn ac-edit" onclick="toggleEdit('${e.id}')">Edit</button>
+          <button class="ac-btn ac-del" onclick="deleteEntry('${e.id}')">✕</button>
+        </div>` : ''}
+      </div>
+      <div class="sub-card-body">
+        <div class="sub-sec s1">
+          <div class="sub-sec-label"><span class="en-inline">${LABEL.tried.en}</span><span class="ko-inline">${LABEL.tried.ko}</span></div>
+          <div class="sub-sec-text">${esc(e.tried)}</div>
+        </div>
+        <div class="sub-sec s2">
+          <div class="sub-sec-label"><span class="en-inline">${LABEL.diff.en}</span><span class="ko-inline">${LABEL.diff.ko}</span></div>
+          <div class="sub-sec-text">${esc(e.diff)}</div>
+        </div>
+        <div class="sub-sec s3">
+          <div class="sub-sec-label"><span class="en-inline">${LABEL.change.en}</span><span class="ko-inline">${LABEL.change.ko}</span></div>
+          <div class="sub-sec-text">${esc(e.change)}</div>
+        </div>
+      </div>
+      <div class="edit-form" id="ef-${e.id}">
+        <div class="ef-row3">
+          <div><label>Team / 팀</label><input type="text" id="ef-team-${e.id}" value="${esc(e.team)}" maxlength="30"/></div>
+          <div><label>Title / 직책</label><input type="text" id="ef-title-${e.id}" value="${esc(e.title)}" maxlength="40"/></div>
+          <div><label>Name / 이름</label><input type="text" id="ef-name-${e.id}" value="${esc(e.name)}" maxlength="30"/></div>
+        </div>
+        <div><label>What I tried / 시도한 것</label><textarea id="ef-tried-${e.id}" maxlength="1000">${esc(e.tried)}</textarea></div>
+        <div><label>What surprised me / 놀라웠던 것</label><textarea id="ef-diff-${e.id}" maxlength="1000">${esc(e.diff)}</textarea></div>
+        <div><label>What changed for me / 달라진 것</label><textarea id="ef-change-${e.id}" maxlength="1000">${esc(e.change)}</textarea></div>
+        <div class="ef-actions">
+          <button class="ef-save" onclick="saveEdit('${e.id}')">Save changes</button>
+          <button class="ef-cancel" onclick="toggleEdit('${e.id}')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  setLang(currentLang);
+}
+
+function toggleEdit(id) {
+  const ef = document.getElementById('ef-'+id);
+  if (ef) ef.classList.toggle('open');
+}
+
+async function saveEdit(id) {
+  const i = entries.findIndex(e=>e.id===id);
+  if (i<0) return;
+  const patch = {
+    team:   document.getElementById('ef-team-'+id).value.trim(),
+    title:  document.getElementById('ef-title-'+id).value.trim(),
+    name:   document.getElementById('ef-name-'+id).value.trim(),
+    tried:  document.getElementById('ef-tried-'+id).value.trim(),
+    diff:   document.getElementById('ef-diff-'+id).value.trim(),
+    change: document.getElementById('ef-change-'+id).value.trim()
+  };
+  const { error } = await sb.from('ai_lessons_entries').update(patch).eq('id', id);
+  if (error) { console.error('saveEdit failed:', error); alert('Save failed.'); return; }
+  Object.assign(entries[i], patch);
+  renderCards();
+}
+
+async function moveEntry(id, dir) {
+  const i = entries.findIndex(e=>e.id===id);
+  const j = i + dir;
+  if (i<0 || j<0 || j>=entries.length) return;
+  const a = entries[i], b = entries[j];
+  const posA = a.position, posB = b.position;
+  const r1 = await sb.from('ai_lessons_entries').update({ position: posB }).eq('id', a.id);
+  if (r1.error) { console.error('moveEntry update a:', r1.error); return; }
+  const r2 = await sb.from('ai_lessons_entries').update({ position: posA }).eq('id', b.id);
+  if (r2.error) { console.error('moveEntry update b:', r2.error); return; }
+  a.position = posB; b.position = posA;
+  [entries[i], entries[j]] = [entries[j], entries[i]];
+  renderCards();
+}
+
+async function deleteEntry(id) {
+  if (!confirm(currentLang === 'ko' ? '이 카드를 삭제할까요?' : 'Delete this card?')) return;
+  const { error } = await sb.from('ai_lessons_entries').delete().eq('id', id);
+  if (error) { console.error('deleteEntry failed:', error); alert('Delete failed.'); return; }
+  entries = entries.filter(e=>e.id!==id);
+  renderCards();
+}
+
+// ── PASSWORD ──
+function openPwModal() {
+  if (adminUnlocked) {
+    adminUnlocked = false;
+    document.getElementById('admin-btn').classList.remove('admin-active');
+    renderCards();
+    return;
+  }
+  document.getElementById('pw-modal').classList.add('on');
+  setTimeout(()=>document.getElementById('pw-input').focus(), 50);
+}
+function closePwModal() {
+  document.getElementById('pw-modal').classList.remove('on');
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-input').classList.remove('wrong');
+}
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === ADMIN_PW) {
+    adminUnlocked = true; closePwModal();
+    document.getElementById('admin-btn').classList.add('admin-active');
+    renderCards();
+  } else {
+    const inp = document.getElementById('pw-input');
+    inp.classList.add('wrong'); inp.value='';
+    setTimeout(()=>inp.classList.remove('wrong'), 400);
+  }
+}
+
+// ── PRESENT ──
+function enterPresent() {
+  document.getElementById('view-submit').style.display='none';
+  document.getElementById('view-cards').style.display='none';
+  document.getElementById('view-board').style.display='none';
+  document.getElementById('view-present').classList.add('on');
+  pidx=0; renderPresentCard();
+}
+function exitPresent() {
+  document.getElementById('view-present').classList.remove('on');
+  showCards();
+}
+function renderPresentCard() {
+  const inner = document.getElementById('p-inner');
+  if (entries.length===0) {
+    inner.innerHTML=`<div class="p-empty"><span class="icon">&#127908;</span>No submissions yet.</div>`; return;
+  }
+  if (pidx>=entries.length) pidx=0;
+  const e = entries[pidx];
+  const dots = entries.map((_,i)=>`<div class="dot-pip ${i<pidx?'done':i===pidx?'active':''}"></div>`).join('');
+  const lbl = (k) => currentLang === 'ko' ? LABEL[k].ko : LABEL[k].en;
+  inner.innerHTML = `
+    <div class="dots">${dots}</div>
+    <div class="p-card">
+      <div class="p-card-head">
+        <div>
+          <div class="p-tag">AI LESSONS &amp; LEARNS &nbsp;·&nbsp; PROMEGA KOREA / PROMEGA BIOSYSTEMS KOREA</div>
+          <div class="p-name">${esc(e.name)}</div>
+          <div class="p-sub">${esc(e.team)} &nbsp;·&nbsp; ${esc(e.title)}</div>
+        </div>
+        <div class="p-counter">${pidx+1} / ${entries.length}</div>
+      </div>
+      <div class="p-body">
+        <div class="p-sec s1"><div class="p-sec-num">1</div><div class="p-sec-label">${lbl('tried')}</div><div class="p-sec-text">${esc(e.tried)}</div></div>
+        <div class="p-sec s2"><div class="p-sec-num">2</div><div class="p-sec-label">${lbl('diff')}</div><div class="p-sec-text">${esc(e.diff)}</div></div>
+        <div class="p-sec s3"><div class="p-sec-num">3</div><div class="p-sec-label">${lbl('change')}</div><div class="p-sec-text">${esc(e.change)}</div></div>
+      </div>
+      <div class="p-card-foot"></div>
+    </div>
+    <div class="p-nav">
+      <button class="nav-btn" onclick="nav(-1)" ${pidx===0?'disabled':''}>&#8592;</button>
+      <div class="nav-count"><strong>${pidx+1}</strong> / ${entries.length}</div>
+      <button class="nav-btn" onclick="nav(1)" ${pidx===entries.length-1?'disabled':''}>&#8594;</button>
+    </div>
+    <div class="key-hint">${currentLang==='ko'?'← → 방향키로 넘기세요':'Use ← → arrow keys to navigate'}</div>
+  `;
+}
+function nav(dir) { pidx=Math.max(0,Math.min(entries.length-1,pidx+dir)); renderPresentCard(); }
+document.addEventListener('keydown',e=>{
+  if (!document.getElementById('view-present').classList.contains('on')) return;
+  if (e.key==='ArrowRight'||e.key==='ArrowDown') nav(1);
+  if (e.key==='ArrowLeft' ||e.key==='ArrowUp')   nav(-1);
+  if (e.key==='Escape') exitPresent();
+});
+
+// ── BOARD ──
+async function loadAndRenderBoard() {
+  const list = document.getElementById('board-list');
+  if (list) list.innerHTML = '<div class="loading-bar"><span class="spinner"></span>Loading…</div>';
+  notes = await loadNotes();
+  renderBoard();
+}
+async function submitNote() {
+  const text = document.getElementById('board-input').value.trim();
+  if (!text) { alert(currentLang==='ko'?'내용을 입력해주세요.':'Please write something first.'); return; }
+  const btn = document.getElementById('board-btn');
+  btn.disabled = true;
+  const { data, error } = await sb.from('ai_lessons_notes').insert({ text }).select().single();
+  btn.disabled = false;
+  if (error) { console.error('submitNote failed:', error); alert('Post failed.'); return; }
+  notes.push({ id: data.id, text: data.text });
+  document.getElementById('board-input').value = '';
+  const s = document.getElementById('board-success');
+  s.style.display = 'block';
+  setTimeout(() => s.style.display = 'none', 2500);
+  renderBoard();
+}
+function renderBoard() {
+  const list = document.getElementById('board-list');
+  if (notes.length === 0) {
+    list.innerHTML = `<p style="text-align:center;color:#6b7280;font-size:13px;padding:32px 0;">
+      <span class="en-inline">No posts yet — be the first!</span>
+      <span class="ko-inline">아직 작성된 내용이 없어요. 첫 번째로 남겨보세요!</span>
+    </p>`;
+    setLang(currentLang);
+    return;
+  }
+  list.innerHTML = notes.slice().reverse().map(n => `
+    <div style="background:#fff;border:0.5px solid #DDE2ED;border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;">
+      ${adminUnlocked ? `<button onclick="deleteNote('${n.id}')" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#ccc;font-size:14px;cursor:pointer;" onmouseover="this.style.color='#C0392B'" onmouseout="this.style.color='#ccc'">✕</button>` : ''}
+      <p style="font-size:14px;color:#1a1a2e;line-height:1.7;margin:0;padding-right:${adminUnlocked?'24px':'0'};white-space:pre-wrap;">${esc(n.text)}</p>
+    </div>
+  `).join('');
+}
+async function deleteNote(id) {
+  if (!confirm(currentLang === 'ko' ? '이 글을 삭제할까요?' : 'Delete this post?')) return;
+  const { error } = await sb.from('ai_lessons_notes').delete().eq('id', id);
+  if (error) { console.error('deleteNote failed:', error); alert('Delete failed.'); return; }
+  notes = notes.filter(n => n.id !== id);
+  renderBoard();
+}
+
+// ── INIT ──
+setLang('en');
+(async () => {
+  [entries, notes] = await Promise.all([load(), loadNotes()]);
+})();
+</script>
+</body>
+</html>
